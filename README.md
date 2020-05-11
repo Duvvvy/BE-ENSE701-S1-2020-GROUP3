@@ -2,14 +2,14 @@
 Software Engineering Repository BackEnd
 
 ## Getting Started
-'''
+```
 npm install
-'''
+```
 
 ## Starting
-'''
+```
 npm start
-'''
+```
 
 ## Stopping
 ctrl + c
