@@ -5,8 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var testAPIRouter = require('./testAPI');
+var testAPIRouter = require('./routes/testAPI');
 var cors = require("cors");
 var app = express();
 
@@ -22,7 +21,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/testAPI', testAPIRouter)
 
 // catch 404 and forward to error handler
@@ -44,6 +42,7 @@ app.use(function(err, req, res, next) {
 //Notes
 console.log('http://localhost:9000');
 console.log('Ctrl + C to stop');
+
 
 
 module.exports = app;
