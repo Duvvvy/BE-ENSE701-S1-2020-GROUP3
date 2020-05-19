@@ -1,0 +1,8 @@
+extends layout
+
+block content
+  h2= title
+  form(action="articlesearch/search", method="post")
+    p What are you looking for? 
+      input(type="text", name="articleText") 
+    input(type="submit", value="Search")
