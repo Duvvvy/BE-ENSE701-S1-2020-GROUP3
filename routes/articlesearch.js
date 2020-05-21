@@ -22,10 +22,11 @@ router.get("/", function (req, res, next) {
 
 //Route to return articles from DB
 router.post("/search", function (req, res, next) {
-  res.send("Looking for article...");
-  search(req.body.articleText)
+  //res.send("Looking for article...");
   connectDatabase();
+  search(req.body.articleText, res);
 });
+
 
 /*Connect to database*/
 function connectDatabase() {
@@ -43,15 +44,25 @@ function connectDatabase() {
 function search(req, res, next) {
   var searchArticle = req;
   console.log(req);
-  pool.query('SELECT * FROM information_schema.tables;', function(err, result) {
+  pool.query("SELECT article FROM bibliographicreference WHERE" + searchArticle, function(err, result) {
     if(err)
     {
       console.log(err);
+      res.send("Not Found Article");
     }
+
     else
     {
-      for (let row of result.rows) {
-        console.log(JSON.stringify(row));
+      if(result.fields && result.fields.length) {
+        var articlesFound
+        for (let row of result.fields) {
+          articlesFound += JSON.stringify(row)
+          console.log(row);
+        }
+        res.send(articlesFound);
+      }
+      else {
+        res.send("Not Found Article");
       }
     }
   });
