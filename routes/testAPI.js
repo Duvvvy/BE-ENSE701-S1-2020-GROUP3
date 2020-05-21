@@ -7,7 +7,7 @@ var router=express.Router();
 const pg = require('pg');
 const {Pool} = require('pg');
 
-let conString = process.env.DATABASE_URL || 'postgres://negtxomvpyukav:2cccea68c2c3ba807464803955c4e91fadce7e98aab3537d61072910b5aafc4b@ec2-34-195-169-25.compute-1.amazonaws.com:5432/d519qj82c2p87g';
+let conString = process.env.DATABASE_URL || 'postgres://mjlrcdotwouger:9234e9e5235b549e9389d1aab578a2c144306c4ab61b1acd052dfb87ffc645c1@ec2-35-174-127-63.compute-1.amazonaws.com:5432/da9rg6k174929g';
 
 const pool = new Pool({
   connectionString: conString,
