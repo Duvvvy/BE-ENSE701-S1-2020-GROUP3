@@ -44,11 +44,11 @@ function connectDatabase() {
 function search(req, res, next) {
   var searchArticle = req.toLowerCase();
   console.log(searchArticle);
-  pool.query("SELECT * FROM bibliographicreference WHERE article='" + searchArticle + "'", function(err, result) {
+  pool.query("SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference.title) LIKE '%" + searchArticle + "%'" + "OR LOWER (bibliographicreference.article) LIKE '%" + searchArticle + "%'", function(err, result) {
     if(err)
     {
       console.log(err);
-      res.send("Not Found Article");
+      res.send("ERROR In Database");
     }
     else
     {
