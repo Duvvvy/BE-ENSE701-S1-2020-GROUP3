@@ -1,17 +1,12 @@
 class signUpChecker{
-    constructor(headers)
+    constructor(body)
     {
-        this.username = headers.username;
-        this.affiliation = headers.affiliation
-        this.password = headers.password;
-        this.fullname = headers.fullname;
-        this.email = headers.email;
-        this.gender = headers.gender;
-        this.age = headers.age;
-    }
-    
-    test()
-    {
-        console.log(this.username);
+        this.username = body.username;
+        this.affiliation = body.affiliation
+        this.password = body.password;
+        this.fullname = body.fullname;
+        this.email = body.email;
+        this.gender = body.gender;
+        this.age = body.age;
     }
 }
