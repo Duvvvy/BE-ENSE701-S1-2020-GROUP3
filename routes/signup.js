@@ -7,7 +7,8 @@ router.get("/", function(req,res,next){
 
 router.post("/", function(req,res,next){
     res.send("API is working properly")
-    console.log(req.headers)
+    let sighUpChecker = new signUpChecker(req.headers)
+    sighUpChecker.test();
 });
 
 module.exports=router;
