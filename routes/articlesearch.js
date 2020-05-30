@@ -8,7 +8,7 @@ const {Pool} = require('pg');
 var searchResult;
 
 /* Create new pool*/
-let conString = process.env.DATABASE_URL || 'postgres://mjlrcdotwouger:9234e9e5235b549e9389d1aab578a2c144306c4ab61b1acd052dfb87ffc645c1@ec2-35-174-127-63.compute-1.amazonaws.com:5432/da9rg6k174929g';
+let conString = process.env.DATABASE_URL || 'postgres://ptoxwxykmkqxkj:c4ce46ef9bdc80563e1d4b90fb65b48a7829e42a07b526c5f8c05cb6fc17bcf2@ec2-35-153-12-59.compute-1.amazonaws.com:5432/ddp53njp2q9370';
 const pool = new Pool({
   connectionString: conString,
   ssl: {
@@ -18,33 +18,34 @@ const pool = new Pool({
 
 /* GET article search page. */
 router.get("/", function (req, res, next) {
-  connectDatabase();
   res.render("articlesearch", { title: "Article search page" });
 
 });
 
 //Route to return articles from DB 
 router.post("/search", async (req, res) => {
-  //res.send("Looking for article...");
-  search(req.body.articleText, res).then(() => approvedSearch(req.body.approvedfilter)).then(() => done(res));
+  // var value = req.body.value;
+  // var field = req.body.field;
+  // var operator = req.body.operator;
+  // var dateFrom = req.body.dateFrom;
+  // var dateTo = req.body.dateTo;
+
+  var field = "title";
+  var operator = "contains";
+  var value = req.body.articleText;
+  var dateFrom = new Date(2000, 02, 01);
+  var dateTo = new Date(2020, 05, 29);
+  var wasError = false;
+
+  let data = [field, operator, value, dateFrom, dateTo];
+
+  await search(data).catch((error) => {
+    console.log("Error: " + error);
+    res.statusCode = 500;
+    res.send({ResponseText: error});
+    wasError = true;
+  }).then(() => done(res));
 });
-
-
-/*Connect to database*/
-function connectDatabase() {
-  pool.connect(function(err) {
-    if(err) {
-      console.log("Can not connect to the DB" + err);
-    }
-    else{
-      console.log("connected to database");
-    }
-  }) 
-}
-
-
-var firstResult;
-var filteredResult;
 
 function done(res) {
   return new Promise(resolve => {
@@ -55,58 +56,88 @@ function done(res) {
     else{
       res.send(searchResult);
     }
-    
     resolve();
   })
 }
 
-function search(req, res) {
-  return new Promise(resolve => {
-    var searchArticle = req.toLowerCase();
-    console.log("Article to search: " + searchArticle);
-    pool.query("SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference.title) LIKE '%" + searchArticle + "%'" + "OR LOWER (bibliographicreference.article) LIKE '%" + searchArticle + "%'", function(err, result) {
-      if(err)
-      {
-        console.log(err);
-        res.send("ERROR In Database");
-      }
-      else
-      {
-        firstResult = result;
+
+
+async function search(data) {
+  console.log(data);
+  let promise = await new Promise((resolve, reject) => {
+    setTimeout(() => reject("Timeout"), 10000);
+    if(data[0] == "article" || data[0] == "author" || data[0] == "title" || data[0] == "journal" || data[0] == "journalvolume" || data[0] == "journalnumber" || data[0] == "pagesfrom" || data[0] == "pagesto")
+    {
+      console.log("searchingBib");
+      searchBibliographicReference(data).then(() => {
         resolve();
-      }
-    });
-  });
+      });
+    }
+    else if(data[0] == "method" ) {
+      searchMethod(data).then(() => {
+        resolve();
+      });
+    }
+  }); 
 }
 
-function approvedSearch(approvedfilter) {
-  return new Promise(resolve => {
-    var articlesFound = null;
-    var approved = "awaiting to be approved"
-    if(approvedfilter == "on"){
-      approved = "approved";
-    }
-    if(firstResult.rowCount >= 1) {
-        for (let row of firstResult.rows) {
-          pool.query("SELECT * FROM articlestatus WHERE id='"+ row.id + "' AND LOWER(articlestatus.statusdescription) ='" + approved + "'" , function(err, result) {
-            if(err)
-            {
-              console.log(err);
-            }
-            else if(result.rowCount >= 1)
-            {
-              // console.log("Fits Filter: true");
-              // console.log("added to JSON");
-              articlesFound += JSON.stringify(row)
-            }
-          });
-          // console.log("Approved Filter: " + isApproved);
-          // console.log("is approved filter on (undefined means no): " + approvedfilter);
-          // console.log("looking at article: " + row);
+async function checkDate(result, data) {
+  let promise = await new Promise((resolve, reject) => {
+    setTimeout(() => reject("Timeout"), 10000);
+    if(result.rowCount >= 1) {
+      for(let row of result.rows) {
+        console.log("rows: " + JSON.stringify(row));
+        if(row.journalyear >= data[3].getFullYear() && row.journalyear <= data[4].getFullYear()) {
+          if((row.journalmonth >= data[3].getMonth() && row.journalmonth <= data[4].getMonth())|| row.journalmonth == null){
+            searchResult += JSON.stringify(row)
+          }
         }
-      setTimeout(() => {searchResult = articlesFound;}, 1000);
-      setTimeout(() => {resolve();}, 2000);
+      }
+      resolve();
     }
+  })
+}
+
+async function searchBibliographicReference(data) {
+  let promise = await new Promise((resolve, reject) => {
+    setTimeout(() => reject("Timeout"), 10000);
+    let query;
+    switch(data[1]) {
+      case 'contains':
+        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") LIKE '%" + data[2] + "%'";
+        break;
+
+      case 'does not contain':
+        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") NOT LIKE '%" + data[2] + "%'";
+        break;
+
+      case 'begins with':
+        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") LIKE '" + data[2] + "%'";
+        break;
+
+      case 'begins with':
+        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") LIKE '%" + data[2] + "'";
+        break;  
+
+      case 'is equal to':
+        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ")='" + data[2] + "'";
+        break;    
+    }
+
+    pool.connect((err, cilent, release) => {
+      if(err) {
+        reject(err.message);
+      }
+      cilent.query(query)
+      .then((result) => {
+        console.log("Checking Date")
+        checkDate(result, data)
+        .then(() => {
+          resolve();
+        })
+        .catch((err) => reject(err.message))
+      }).then(() => cilent.release());
+    });
   });
 }
 
