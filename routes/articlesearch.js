@@ -1,8 +1,6 @@
 var express = require("express");
 var router = express.Router();
 
-
-const pg = require('pg');
 const {Pool} = require('pg');
 
 var searchResult;
@@ -31,11 +29,17 @@ router.post("/search", async (req, res) => {
   // var dateTo = req.body.dateTo;
 
   var field = "title";
+
+  // var field = "method";
   var operator = "contains";
   var value = req.body.articleText;
   var dateFrom = new Date(2000, 02, 01);
   var dateTo = new Date(2020, 05, 29);
   var wasError = false;
+
+  field = field.toLowerCase();
+  operator = operator.toLowerCase();
+  value = value.toLowerCase();
 
   let data = [field, operator, value, dateFrom, dateTo];
 
@@ -59,8 +63,6 @@ function done(res) {
     resolve();
   })
 }
-
-
 
 async function search(data) {
   console.log(data);
@@ -88,12 +90,79 @@ async function checkDate(result, data) {
       for(let row of result.rows) {
         console.log("rows: " + JSON.stringify(row));
         if(row.journalyear >= data[3].getFullYear() && row.journalyear <= data[4].getFullYear()) {
-          if((row.journalmonth >= data[3].getMonth() && row.journalmonth <= data[4].getMonth())|| row.journalmonth == null){
-            searchResult += JSON.stringify(row)
+          var date = new Date(row.journalyear, row.journalmonth, 0);
+          if(row.journalmonth != null) {
+            if((date >= data[3] && date <= data[4])) {
+              console.log("ADDED");
+              searchResult += JSON.stringify(row)
+            }
           }
         }
       }
-      resolve();
+    }
+    resolve();
+  })
+}
+
+async function searchMethod(data) {
+  let promise = await new Promise((resolve, reject) => {
+    setTimeout(() => reject("Timeout"), 10000);
+    let query;
+    switch(data[1]) {
+      case 'contains' :
+        query = "SELECT articleid FROM articleevidence WHERE LOWER (articleevidence.evidencemethod) LIKE '%" + data[2] + "%'";
+        break;
+      
+      case 'does not contain':
+        query = "SELECT articleid FROM articleevidence WHERE LOWER (articleevidence.evidencemethod) NOT LIKE '%" + data[2] + "%'";
+        break;
+     
+      case 'begins with':
+        query = "SELECT articleid FROM articleevidence WHERE LOWER (articleevidence.evidencemethod) LIKE '" + data[2] + "%'";
+        break;
+
+      case 'ends with':
+        query = "SELECT articleid FROM articleevidence WHERE LOWER (articleevidence.evidencemethod) LIKE '%" + data[2] + "'";
+        break;   
+
+      case 'is equal to' :
+        query = "SELECT articleid FROM articleevidence WHERE LOWER (articleevidence.evidencemethod) LIKE '%" + data[2] + "%'";
+        break;  
+    }
+
+    pool.connect((err, cilent, release) => {
+      if(err) {
+        reject(err.message);
+      }
+      cilent.query(query)
+      .then((resultID) => {
+        console.log("Finding Article with Id")
+        findArticle(cilent, resultID, data)
+        .then(() => {
+        resolve();
+        })
+        .catch((err) => reject(err.message))
+      })
+      .then(() => cilent.release());
+    });    
+  })
+}
+
+async function findArticle(cilent, resultID, data) {
+  let promise = await new Promise((resolve, reject) => {
+    setTimeout(() => reject("Timeout"), 10000);
+    if(resultID.rowCount >= 1) {
+      for(let row of resultID.rows) {
+        console.log("rows: " + JSON.stringify(row));
+        console.log("articleID: " + row.articleid);
+        cilent.query("SELECT * FROM bibliographicreference WHERE id=" + row.articleid)
+        .then((result) => {
+          checkDate(result, data)
+        })
+        .then(() => {
+          resolve();
+        })
+      }
     }
   })
 }
