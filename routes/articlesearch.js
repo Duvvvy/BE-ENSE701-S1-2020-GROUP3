@@ -23,6 +23,7 @@ router.get("/", function (req, res, next) {
 //Route to return articles from DB 
 router.post("/search", async (req, res) => {
 
+  searchResult = '';
   var field = req.body.field;
   var operator = req.body.operator;
   var value = req.body.value;
