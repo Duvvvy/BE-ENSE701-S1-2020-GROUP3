@@ -6,7 +6,6 @@ var logger = require("morgan");
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
-var testAPIRouter = require('./routes/testAPI');
 var searchArticleRouter = require("./routes/articlesearch");
 var submitArticleRouter = require("./routes/articlesubmit");
 
@@ -26,7 +25,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(cors());
 
 app.use("/", indexRouter);
-app.use("/testAPI", testAPIRouter);
 app.use("/articlesearch", searchArticleRouter);
 app.use("/article", submitArticleRouter);
 
