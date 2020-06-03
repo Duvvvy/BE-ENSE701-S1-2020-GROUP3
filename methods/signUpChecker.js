@@ -1,4 +1,4 @@
-class signUpChecker{
+module.exports = class signUpChecker{
     constructor(body)
     {
         this.username = body.username;
