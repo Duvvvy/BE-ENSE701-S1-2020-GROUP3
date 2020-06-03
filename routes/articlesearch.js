@@ -3,7 +3,7 @@ var router = express.Router();
 
 const {Pool} = require('pg');
 
-var searchResult = '';
+var searchResult = [];
 
 /* Create new pool*/
 let conString = process.env.DATABASE_URL || 'postgres://ptoxwxykmkqxkj:c4ce46ef9bdc80563e1d4b90fb65b48a7829e42a07b526c5f8c05cb6fc17bcf2@ec2-35-153-12-59.compute-1.amazonaws.com:5432/ddp53njp2q9370';
@@ -23,7 +23,7 @@ router.get("/", function (req, res, next) {
 //Route to return articles from DB 
 router.post("/search", async (req, res) => {
 
-  searchResult = '';
+  searchResult = [];
   var field = req.body.field;
   var operator = req.body.operator;
   var value = req.body.value;
@@ -99,8 +99,12 @@ async function checkDate(result, data) {
           if(row.journalmonth != null) {
             if((date >= data[3] && date <= data[4])) {
               console.log("ADDED");
-              searchResult += JSON.stringify(row)
+              searchResult.push(row)
             }
+          }
+          else {
+            console.log("ADDED");
+            searchResult.push(row)
           }
         }
       }
