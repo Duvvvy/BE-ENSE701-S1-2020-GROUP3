@@ -8,7 +8,7 @@ router.get("/", function(req,res,next){
 
 router.post("/", function(req,res,next){
     let checkedInfo = new signUpChecker(req.body)
-    res.send(checkedInfo.username)
+    res.send(checkedInfo.checker())
 });
 
 module.exports=router;
