@@ -9,9 +9,10 @@ router.post("/", function (req, res) {
     { session: false },
     (err, username, userId) => {
       if (err || !username) {
+        console.log(username);
+        console.log(err);
         return res.status(400).json({
           message: "Something is not right",
-          user: user,
         });
       }
       req.login(username, { session: false }, (err, user) => {

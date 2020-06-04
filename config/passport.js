@@ -35,20 +35,19 @@ passport.use(
         await client.query("BEGIN");
         var currentAccountsData = await JSON.stringify(
           client.query(
-            `SELECT id, fullname, username, password FROM "User" WHERE "username"='${req.body.username}'`,
+            `SELECT id, username, email, password FROM "User" WHERE "email"='${req.body.email}'`,
             function (err, result) {
               if (err) {
-                console.log(err);
+                return done(err);
               } else if (result.rows[0] == null) {
-                req.flash("danger", "Oops. Incorrect login details.");
-                return done(null, false);
+                return done("Oops. Incorrect login details.");
               } else {
                 if (result.rows[0].password === req.body.password) {
                   //password match
+                  console.log("password match");
                   return done(null, result.rows[0].username, result.rows[0].id);
                 } else {
-                  req.flash("danger", "Oops. Incorrect login details.");
-                  return done(null, false);
+                  return done("Oops. Incorrect login details.");
                 }
               }
             }

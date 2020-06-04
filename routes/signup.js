@@ -40,7 +40,7 @@ router.post("/join", async function (req, res) {
             .json({ response: "This email address is already registered." });
         } else {
           client.query(
-            `INSERT INTO "User" (username, email, password) VALUES ('${req.body.username}', '${req.body.email}', '${req.body.password}')`,
+            `INSERT INTO "User" (username, email, password) VALUES ('${req.body.email}', '${req.body.email}', '${req.body.password}')`,
             function (err, result) {
               if (err) {
                 res
