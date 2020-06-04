@@ -5,4 +5,6 @@ block content
   form(action="articlesearch/search", method="post")
     p What are you looking for? 
       input(type="text", name="articleText") 
+      p check for approved article
+      input(type="checkbox", name="approvedfilter")
     input(type="submit", value="Search")

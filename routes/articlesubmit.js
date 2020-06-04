@@ -75,6 +75,7 @@ async function insertReference(data) {
       query = `insert into bibliographicreference  (article , author, title, journalYear, journalVolume, journalNumber, journalMonth, publisher, edition, editor, series ) values ('${data.article}','${data.author}','${data.title}','${data.year}','${data.volume}','${data.number}','${data.month}','${data.publisher}','${data.edition}','${data.editor}','${data.series}' ) RETURNING id`;
     setTimeout(() => reject("Timeout"), 10000);
     console.log(query);
+
     pool.connect((err, client, release) => {
       if (err) {
         reject(err.message);
