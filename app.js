@@ -7,15 +7,16 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const errorHandler = require('errorhandler');
 
-var indexRouter = require("./routes/index");
+require('./config/passport');
+
+
+
+//var indexRouter = require("./routes/index");
 var searchArticleRouter = require("./routes/articlesearch");
 var submitArticleRouter = require("./routes/articlesubmit");
-
-require('./models/Users');
-require('./config/passport');
+const auth = require('./routes/auth');
 
 //Is this prod or dev?
 const isProduction = process.env.NODE_ENV === 'production';
@@ -50,38 +51,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());//What is this?
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/", indexRouter);
+//app.use("/", indexRouter);
 app.use("/articlesearch", searchArticleRouter);
 app.use("/article", submitArticleRouter);
+app.use('/auth', auth);
 
-/*  PASSPORT SETUP  */
-const passport = require('passport');
 
-app.use(passport.initialize());
-app.use(passport.session());
-
-/* MONGOOSE SETUP */
-const mongoose = require('mongoose');
-const passportLocalMongoose = require('passport-local-mongoose');
-
-mongoose.connect('mongodb://localhost/MyDatabase',
-  { useNewUrlParser: true, useUnifiedTopology: true });
-
-const Schema = mongoose.Schema;
-const UserDetail = new Schema({
-  username: String,
-  password: String
-});
-
-UserDetail.plugin(passportLocalMongoose);
-const UserDetails = mongoose.model('userInfo', UserDetail, 'userInfo');
-
-/* PASSPORT LOCAL AUTHENTICATION */
-
-passport.use(UserDetails.createStrategy());
-
-passport.serializeUser(UserDetails.serializeUser());
-passport.deserializeUser(UserDetails.deserializeUser());
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
