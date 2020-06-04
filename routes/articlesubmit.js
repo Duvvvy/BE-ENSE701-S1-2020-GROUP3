@@ -68,15 +68,20 @@ router.post("/submitarticle", async (req, res) => {
 async function insertReference(data) {
   console.log(data);
   let promise = await new Promise((resolve, reject) => {
+    var query;
+    if (data.type == "article")
+      query = `insert into bibliographicreference  (article , author, title, journal, journalYear, journalVolume, journalNumber, pagesFrom, pagesTo, journalMonth ) values ('${data.article}','${data.author}','${data.title}','${data.journal}','${data.year}','${data.volume}','${data.number}','${data.pagefrom}','${data.pageto}','${data.month}' ) RETURNING id`;
+    else
+      query = `insert into bibliographicreference  (article , author, title, journalYear, journalVolume, journalNumber, journalMonth, publisher, edition, editor, series ) values ('${data.article}','${data.author}','${data.title}','${data.year}','${data.volume}','${data.number}','${data.month}','${data.publisher}','${data.edition}','${data.editor}','${data.series}' ) RETURNING id`;
     setTimeout(() => reject("Timeout"), 10000);
+    console.log(query);
+
     pool.connect((err, client, release) => {
       if (err) {
         reject(err.message);
       }
       client
-        .query(
-          `insert into bibliographicreference  (article , author, title, journal, journalYear, journalVolume, journalNumber, pagesFrom, pagesTo, journalMonth ) values ('${data.article}','${data.author}','${data.title}','${data.journal}','${data.year}','${data.volume}','${data.number}','${data.pagefrom}','${data.pageto}','${data.month}' ) RETURNING id`
-        )
+        .query(query)
         .then((res) => {
           theBibId = res.rows[0].id;
           resolve();
