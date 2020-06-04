@@ -114,7 +114,7 @@ async function checkDate(result, data) {
             }
           }
           else {
-            console.log("ADDED");
+            console.log("ADDED: " + JSON.stringify(row));
             searchResult.push(row)
           }
         }
