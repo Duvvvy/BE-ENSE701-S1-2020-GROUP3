@@ -29,6 +29,34 @@ app.use("/testAPI", testAPIRouter);
 app.use("/articlesearch", searchArticleRouter);
 app.use("/signup", signupRouter)
 
+/*  PASSPORT SETUP  */
+
+const passport = require('passport');
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+/* PASSPORT LOCAL AUTHENTICATION */
+
+passport.use(new LocalStrategy({
+  usernameField: 'email',
+  passwordField: 'pass'
+},
+(username, password, done) => {
+  log.debug("Login process:", username);
+  return db.one("SELECT user_id, user_name, user_email, user_role " +
+      "FROM users " +
+      "WHERE user_email=$1 AND user_pass=$2", [username, password])
+    .then((result)=> {
+      return done(null, result);
+    })
+    .catch((err) => {
+      log.error("/login: " + err);
+      return done(null, false, {message:'Wrong user name or password'});
+    });
+}));
+
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

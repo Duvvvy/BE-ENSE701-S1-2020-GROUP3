@@ -6,12 +6,19 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "connect-ensure-login": "^0.1.1",
     "cookie-parser": "~1.4.5",
     "cors": "^2.8.5",
     "debug": "~4.1.1",
     "express": "~4.17.1",
     "http-errors": "~1.7.3",
     "jade": "~1.11.0",
-    "morgan": "~1.10.0"
+    "mongoose": "^5.9.17",
+    "morgan": "~1.10.0",
+    "nodemon": "^2.0.4",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0",
+    "pg": "^8.2.1",
+    "request": "^2.88.2"
   }
 }
