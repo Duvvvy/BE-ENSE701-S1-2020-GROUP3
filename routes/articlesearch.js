@@ -29,6 +29,17 @@ router.post("/search", async (req, res) => {
   var value = req.body.value;
   var dateFrom = new Date(req.body.datefromyear, req.body.datefrommonth, req.body.datefromday);
   var dateTo = new Date(req.body.datetoyear, req.body.datetomonth, req.body.datetoday);
+  var column = req.body.column;
+  var asc = req.body.asc;
+
+  var orderBy = '';
+
+  if(asc == true){
+    orderBy = " ORDER BY "+ column + " ASC";
+  }
+  else {
+    orderBy = " ORDER By "+ column + " DESC";
+  }
 
   console.log(req.body);
   // var field = "title";
@@ -44,7 +55,7 @@ router.post("/search", async (req, res) => {
   operator = operator.toLowerCase();
   value = value.toLowerCase();
 
-  let data = [field, operator, value, dateFrom, dateTo];
+  let data = [field, operator, value, dateFrom, dateTo, orderBy];
 
   await search(data).catch((error) => {
     console.log("Error: " + error);
@@ -164,7 +175,7 @@ async function findArticle(cilent, resultID, data) {
       for(let row of resultID.rows) {
         console.log("rows: " + JSON.stringify(row));
         console.log("articleID: " + row.articleid);
-        cilent.query("SELECT * FROM bibliographicreference WHERE id=" + row.articleid)
+        cilent.query("SELECT * FROM bibliographicreference WHERE id=" + row.articleid + data[5])
         .then((result) => {
           checkDate(result, data)
         })
@@ -182,23 +193,23 @@ async function searchBibliographicReference(data) {
     let query;
     switch(data[1]) {
       case 'contains':
-        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") LIKE '%" + data[2] + "%'";
+        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") LIKE '%" + data[2] + "%'" + data[5];
         break;
 
       case 'does not contain':
-        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") NOT LIKE '%" + data[2] + "%'";
+        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") NOT LIKE '%" + data[2] + "%'" + data[5];
         break;
 
       case 'begins with':
-        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") LIKE '" + data[2] + "%'";
+        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") LIKE '" + data[2] + "%'" + data[5];
         break;
 
       case 'begins with':
-        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") LIKE '%" + data[2] + "'";
+        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ") LIKE '%" + data[2] + "'" + data[5];
         break;  
 
       case 'is equal to':
-        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ")='" + data[2] + "'";
+        query = "SELECT * FROM bibliographicreference WHERE LOWER (bibliographicreference." + data[0] + ")='" + data[2] + "'" + data[5];
         break;    
     }
 
