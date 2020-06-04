@@ -6,9 +6,10 @@ var logger = require("morgan");
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
-var testAPIRouter = require("./testAPI");
 var searchArticleRouter = require("./routes/articlesearch");
 var signupRouter = require("./routes/signup");
+var submitArticleRouter = require("./routes/articlesubmit");
+
 var cors = require("cors");
 var app = express();
 
@@ -24,10 +25,9 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(cors());
 
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
-app.use("/testAPI", testAPIRouter);
 app.use("/articlesearch", searchArticleRouter);
 app.use("/signup", signupRouter)
+app.use("/article", submitArticleRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -48,5 +48,6 @@ app.use(function (err, req, res, next) {
 //Notes
 console.log("http://localhost:9000");
 console.log("Ctrl + C to stop");
+
 
 module.exports = app;
