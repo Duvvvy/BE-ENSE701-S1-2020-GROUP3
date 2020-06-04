@@ -34,7 +34,7 @@ router.post("/search", async (req, res) => {
 
   var orderBy = '';
 
-  if(asc == true){
+  if(asc == 'true'){
     orderBy = " ORDER BY "+ column + " ASC";
   }
   else {
@@ -109,7 +109,7 @@ async function checkDate(result, data) {
           var date = new Date(row.journalyear, row.journalmonth, 0);
           if(row.journalmonth != null) {
             if((date >= data[3] && date <= data[4])) {
-              console.log("ADDED");
+              console.log("ADDED: " +JSON.stringify(row));
               searchResult.push(row)
             }
           }
