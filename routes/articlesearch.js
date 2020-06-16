@@ -41,14 +41,7 @@ router.post("/search", async (req, res) => {
     orderBy = " ORDER By "+ column + " DESC";
   }
 
-  console.log(req.body);
-  // var field = "title";
-
-  // // var field = "method";
-  // var operator = "contains";
-  // var value = req.body.articleText;
-  // var dateFrom = new Date(2000, 02, 01);
-  // var dateTo = new Date(2020, 05, 29);
+  console.log("Input: " +req.body);
   var wasError = false;
 
   field = field.toLowerCase();
@@ -72,7 +65,6 @@ function done(res) {
       res.send("nothing found");
     }
     else{
-      console.log("Found: " + searchResult)
       res.send({searchResult});
       
     }
@@ -81,12 +73,11 @@ function done(res) {
 }
 
 async function search(data) {
-  console.log("Recieved:" + data);
+  console.log("Recieved: " + data);
   let promise = await new Promise((resolve, reject) => {
     setTimeout(() => reject("Timeout"), 10000);
     if(data[0] == "article" || data[0] == "author" || data[0] == "title" || data[0] == "journal" || data[0] == "journalvolume" || data[0] == "journalnumber" || data[0] == "pagesfrom" || data[0] == "pagesto")
     {
-      console.log("searchingBib");
       searchBibliographicReference(data).then(() => {
         resolve();
       });
@@ -96,6 +87,23 @@ async function search(data) {
         resolve();
       });
     }
+    else if(data[0] == "methodology") {
+      searchMethodology(data).then(() => {
+        resolve();
+      });
+    }
+
+    else if(data[0] == "rating") {
+      searchRating(data).then(() => {
+        resolve();
+      })
+    }
+
+    else if (data[0] == "participants") {
+      searchParticipants(data).then(() => {
+        resolve();
+      })
+    }
   }); 
 }
 
@@ -104,7 +112,7 @@ async function checkDate(result, data) {
     setTimeout(() => reject("Timeout"), 10000);
     if(result.rowCount >= 1) {
       for(let row of result.rows) {
-        console.log("rows: " + JSON.stringify(row));
+        console.log("Checking date rows: " + JSON.stringify(row));
         if(row.journalyear >= data[3].getFullYear() && row.journalyear <= data[4].getFullYear()) {
           var date = new Date(row.journalyear, row.journalmonth, 0);
           if(row.journalmonth != null) {
@@ -121,6 +129,141 @@ async function checkDate(result, data) {
       }
     }
     resolve();
+  })
+}
+
+async function searchParticipants(data) {
+  let promise =await new Promise((resolve, reject) => {
+    setTimeout(() => reject("Timeout"), 10000);
+    let query;
+    switch(data[1]) {
+      case 'contains' :
+        query = "SELECT * FROM participant WHERE LOWER (participant.type) LIKE '%" + data[2] + "%'"
+        break;
+      
+      case 'does not contain':
+        query = "SELECT * FROM participant WHERE LOWER (participant.type) NOT LIKE '%" + data[2] + "%'";
+        break;
+     
+      case 'begins with':
+        query = "SELECT * FROM participant WHERE LOWER (participant.type) LIKE '" + data[2] + "%'";
+        break;
+
+      case 'ends with':
+        query = "SELECT * FROM participant WHERE LOWER (participant.type) LIKE '%" + data[2] + "'";
+        break;   
+
+      case 'is equal to' :
+        query = "SELECT * FROM participant WHERE LOWER (participant.type) LIKE '%" + data[2] + "%'";
+        break;  
+    }
+
+    pool.connect((err, cilent, release) => {
+      if(err) {
+        reject(err.message);
+      }
+      cilent.query(query)
+      .then((resultID) => {
+        console.log("Finding Research with Id")
+        findResearchParticipants(cilent, resultID, data)
+          .then(() => {
+            resolve();
+          })
+        .catch((err) => reject(err.message))
+      })
+      .then(() => cilent.release());
+    }); 
+
+
+  })
+}
+
+
+async function searchMethodology(data) {
+  let promise = await new Promise((resolve,reject) => {
+    setTimeout(() => reject("Timeout"), 10000);
+    let query;
+    switch(data[1]) {
+      case 'contains' :
+        query = "SELECT articleid FROM articleevidence WHERE LOWER (articleevidence.evidencemethodology) LIKE '%" + data[2] + "%'"
+        break;
+      
+      case 'does not contain':
+        query = "SELECT articleid FROM articleevidence WHERE LOWER (articleevidence.evidencemethodology) NOT LIKE '%" + data[2] + "%'";
+        break;
+     
+      case 'begins with':
+        query = "SELECT articleid FROM articleevidence WHERE LOWER (articleevidence.evidencemethodology) LIKE '" + data[2] + "%'";
+        break;
+
+      case 'ends with':
+        query = "SELECT articleid FROM articleevidence WHERE LOWER (articleevidence.evidencemethodology) LIKE '%" + data[2] + "'";
+        break;   
+
+      case 'is equal to' :
+        query = "SELECT articleid FROM articleevidence WHERE LOWER (articleevidence.evidencemethodology) LIKE '%" + data[2] + "%'";
+        break;  
+    }
+
+    pool.connect((err, cilent, release) => {
+      if(err) {
+        reject(err.message);
+      }
+      cilent.query(query)
+      .then((resultID) => {
+        console.log("Finding Article with Id")
+        findArticle(cilent, resultID, data)
+          .then(() => {
+            resolve();
+          })
+        .catch((err) => reject(err.message))
+      })
+      .then(() => cilent.release());
+    }); 
+  })
+}
+
+async function searchRating(data) {
+  let promise = await new Promise((resolve,reject) => {
+    setTimeout(() => reject("Timeout"), 10000);
+    let query;
+    switch(data[1]) {
+      case 'contains' :
+        query = "SELECT articleid FROM articleuserrating WHERE LOWER (articleevidence.score) LIKE '%" + data[2] + "%'";
+        break;
+      
+      case 'does not contain':
+        query = "SELECT articleid FROM articleuserrating WHERE LOWER (articleevidence.score)) NOT LIKE '%" + data[2] + "%'";
+        break;
+     
+      case 'begins with':
+        query = "SELECT articleid FROM articleuserrating WHERE LOWER (articleevidence.score)) LIKE '" + data[2] + "%'";
+        break;
+
+      case 'ends with':
+        query = "SELECT articleid FROM articleuserrating WHERE LOWER (articleevidence.score)) LIKE '%" + data[2] + "'";
+        break;   
+
+      case 'is equal to' :
+        query = "SELECT articleid FROM articleuserrating WHERE LOWER (articleevidence.score)) LIKE '%" + data[2] + "%'";
+        break;  
+    }
+
+    pool.connect((err, cilent, release) => {
+      if(err) {
+        reject(err.message);
+      }
+      cilent.query(query)
+      .then((resultID) => {
+        console.log("Finding Article with Id")
+        findArticle(cilent, resultID, data)
+          .then(() => {
+            resolve();
+          })
+        .catch((err) => reject(err.message))
+      })
+      .then(() => cilent.release());
+    }); 
   })
 }
 
@@ -158,9 +301,9 @@ async function searchMethod(data) {
       .then((resultID) => {
         console.log("Finding Article with Id")
         findArticle(cilent, resultID, data)
-        .then(() => {
-        resolve();
-        })
+          .then(() => {
+            resolve();
+          })
         .catch((err) => reject(err.message))
       })
       .then(() => cilent.release());
@@ -168,21 +311,92 @@ async function searchMethod(data) {
   })
 }
 
-async function findArticle(cilent, resultID, data) {
+async function findResearchParticipants(cilent, resultID, data) {
+  console.log("findResearchParticipants----------------------------------------------")
   let promise = await new Promise((resolve, reject) => {
     setTimeout(() => reject("Timeout"), 10000);
+    let query = "SELECT * FROM researchparticipants WHERE participantid="
+    let count = 0;
     if(resultID.rowCount >= 1) {
       for(let row of resultID.rows) {
-        console.log("rows: " + JSON.stringify(row));
-        console.log("articleID: " + row.articleid);
-        cilent.query("SELECT * FROM bibliographicreference WHERE id=" + row.articleid + data[5])
-        .then((result) => {
-          checkDate(result, data)
-        })
-        .then(() => {
-          resolve();
-        })
+        count++;
+        console.log("Find: " + JSON.stringify(row));
+        console.log("researchID: " + row.id);
+        query+=(row.id);
+        if(count != resultID.rowCount) {
+          query+=(" OR id=");
+        }
       }
+      console.log(query);
+      cilent.query(query + data[5])
+      .then((resultID) => {
+        searchResearch(cilent, resultID, data);
+      }).then(() => {
+        setTimeout(() => resolve(), 1000);
+      })
+    }
+    else {
+      resolve();
+    }
+  })
+}
+
+async function searchResearch(cilent, resultID, data) {
+  console.log("searchResearch----------------------------------------------")
+  let promise = await new Promise((resolve, reject) => {
+    setTimeout(() => reject("Timeout"), 10000);
+    let query = "SELECT * FROM research WHERE id="
+    let count = 0;
+    if(resultID.rowCount >= 1) {
+      for(let row of resultID.rows) {
+        count++;
+        console.log("Find: " + JSON.stringify(row));
+        console.log("researchID: " + row.researchid);
+        query+=(row.researchid);
+        if(count != resultID.rowCount) {
+          query+=(" OR id=");
+        }
+      }
+      console.log(query);
+      cilent.query(query + data[5])
+      .then((resultID) => {
+        findArticle(cilent, resultID, data);
+      }).then(() => {
+        resolve();
+      })
+    }
+    else {
+      resolve();
+    }
+  })
+}
+
+async function findArticle(cilent, resultID, data) {
+  console.log("findArticle----------------------------------------------")
+  let promise = await new Promise((resolve, reject) => {
+    setTimeout(() => reject("Timeout"), 10000);
+    let query = "SELECT * FROM bibliographicreference WHERE id="
+    let count =0;
+    if(resultID.rowCount >= 1) {
+      for(let row of resultID.rows) {
+        count++;
+        console.log("Find: " + JSON.stringify(row));
+        console.log("articleID: " + row.articleid);
+        query+=(row.articleid);
+        if(count != resultID.rowCount) {
+          query+=(" OR id=");
+        }
+      }
+      console.log(query);
+      cilent.query(query + data[5])
+      .then((result) => {
+        checkDate(result, data);
+      }).then(() => {
+        resolve();
+      })
+    }
+    else {
+      resolve();
     }
   })
 }
